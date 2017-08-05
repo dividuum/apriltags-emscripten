@@ -1,0 +1,98 @@
+<html>
+  <body>
+  <input id='image' type="file" accept="image/*">
+  <pre id='log'></pre>
+  <script src='apriltag.js'></script>
+  <script>
+    var log = document.getElementById('log');
+    function write(str) {
+      var txt = document.createTextNode(str + '\n');
+      log.appendChild(txt);
+    }
+
+    function AprilTags() {
+      var detections = [];
+
+      var detect = Module.cwrap('detect', 'number', [
+        'number', 'number', 'number', 'number'
+      ]);
+
+      var detected = Runtime.addFunction(function(
+        id, 
+        x1,y1,x2,y2,x3,y3,x4,y4,
+        m00,m01,m02,m10,m11,m12,m20,m21,m22
+      ) {
+        detections.push({
+          id: id,
+          x1: x1, y1: y1,
+          x2: x2, y2: y2,
+          x3: x3, y3: y3,
+          x4: x4, y4: y4,
+          m: [m00,m01,m02,m10,m11,m12,m20,m21,m22],
+        })
+      })
+
+      return function(im) {
+        var src_w = im.width;
+        var src_h = im.height;
+
+        var downscale = 1;
+        if (src_w > 800)
+            downscale = src_w / 800;
+        if (src_h > 800)
+            downscale = Math.max(src_h / 800, downscale)
+
+        var w = Math.floor(src_w / downscale);
+        var h = Math.floor(src_h / downscale);
+        console.log(w, h);
+
+        write("Creating canvas");
+        var canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        // document.body.appendChild(canvas);
+
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(im,0,0, w, h);
+
+        write("Fetching scaled image");
+        var imageData = ctx.getImageData(0, 0, w, h);
+
+        var buf = Module._malloc(imageData.data.length * imageData.data.BYTES_PER_ELEMENT);
+        Module.HEAPU8.set(imageData.data, buf);
+
+        write("Detecting...");
+        detections = [];
+        detect(detected, w, h, buf);
+
+        Module._free(buf);
+
+        return detections;
+      }
+    }
+
+    var detector = AprilTags();
+
+    function new_image(evt) {
+        var reader = new FileReader();
+        reader.onload = function(evt) {
+            var im = new Image();
+            im.onload = function() {
+              write("Got image");
+              var tags = detector(im);
+              write(tags.length + ' tags detected');
+
+              for (var idx = 0; idx < tags.length; idx++) {
+                  var tag = tags[idx];
+                  write(tag.id + ' x1:' + tag.x1 + ' y1:' + tag.y1);
+              }
+            }
+            im.src = evt.target.result;
+        }
+        reader.readAsDataURL(evt.target.files[0]);     
+    }
+
+    var ui = document.getElementById('image');
+    ui.addEventListener('change', new_image, false);
+  </script>
+</html>
