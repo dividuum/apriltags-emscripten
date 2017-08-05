@@ -101,5 +101,6 @@ int detect(detected cb, int w, int h, unsigned char *buf) {
     zarray_destroy(detections);
     apriltag_detector_destroy(td);
     tag36h11_destroy(tf);
+    free(gray);
     return 0;
 }
