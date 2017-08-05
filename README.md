@@ -1,5 +1,7 @@
 # AprilTags in JavaScript with emscripten
 
+![Some AprilTags](example.jpg)
+
 This is a proof of concept project showing how to detect
 [AprilTags](https://april.eecs.umich.edu/software/apriltag.html)
 using JavaScript. The original C code was cross compile to
