@@ -12,6 +12,11 @@ wrapped c library can be found in `html/index.html`.
 ## Demo
 
 Try it out [here](https://rawgit.com/dividuum/apriltags-emscripten/master/html/index.html).
+You can either choose the included `example.jpg` file, or, if you're
+on a device that allows you to directly capture images, you might
+want to capture an picture of the above image.
+
+It should detect the three tags visible.
 
 ## Limits
 
